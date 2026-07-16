@@ -1,4 +1,4 @@
-#  WorkoutTracker
+# WorkoutTracker
 
 A fullstack workout tracking application to log, search, and manage your training sessions.
 
@@ -56,7 +56,8 @@ WorkoutTracker/
 │   │   ├── main.jsx
 │   │   └── index.css
 │   └── package.json
-└── README.md
+├── README.md
+└── LICENSE
 ```
 
 ---
@@ -153,7 +154,13 @@ The frontend expects the backend API to be running (see `frontend/src/api/workou
 
 Can be deployed using:
 
-- **Frontend**: Vercel or Netlify (`npm run build` → deploy `frontend/dist/`)
+- **Frontend**: Vercel, Netlify, or GitHub Pages (`npm run build` → deploy `frontend/dist/`)
 - **Backend**: Render, Railway, or EC2 (set `PORT` environment variable)
 
 Both platforms support monorepos — set the project root/subdirectory to `frontend/` or `backend/` respectively in your deployment settings.
+
+> **Known limitation:** the frontend currently calls the API via a hardcoded relative path (`frontend/src/api/workouts.js`), which only works when both are served from the same origin (e.g. local dev via the Vite proxy). Deploying the frontend and backend to two different hosts will not work until the API base URL is made environment-configurable — this is a planned fix, not yet implemented.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
