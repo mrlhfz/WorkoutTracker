@@ -18,6 +18,7 @@ export const api = {
   getWorkout: (id) => request(`/workouts/${id}`),
   getStats: () => request('/workouts/stats'),
   createWorkout: (body) => request('/workouts', { method: 'POST', body: JSON.stringify(body) }),
-  updateWorkout: (id, body) => request(`/workouts/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  updateWorkout: (id, body) =>
+    request(`/workouts/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteWorkout: (id) => request(`/workouts/${id}`, { method: 'DELETE' }),
 };

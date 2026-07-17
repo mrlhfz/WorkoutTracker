@@ -1,26 +1,33 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { api } from '../api/workouts.js'
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { api } from '../api/workouts.js';
 
-const CATEGORY_EMOJI = { strength: '🏋️', cardio: '🏃', flexibility: '🧘', sports: '⚽', other: '💪' }
+const CATEGORY_EMOJI = {
+  strength: '🏋️',
+  cardio: '🏃',
+  flexibility: '🧘',
+  sports: '⚽',
+  other: '💪',
+};
 
 export default function Dashboard() {
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    api.getStats()
-      .then(res => setStats(res.data))
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [])
+    api
+      .getStats()
+      .then((res) => setStats(res.data))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
-  if (loading) return <div className="loading">Loading stats...</div>
-  if (error) return <div className="error-msg">{error}</div>
+  if (loading) return <div className="loading">Loading stats...</div>;
+  if (error) return <div className="error-msg">{error}</div>;
 
-  const hours = Math.floor((stats.totalMinutes || 0) / 60)
-  const mins = (stats.totalMinutes || 0) % 60
+  const hours = Math.floor((stats.totalMinutes || 0) / 60);
+  const mins = (stats.totalMinutes || 0) % 60;
 
   return (
     <div>
@@ -32,7 +39,9 @@ export default function Dashboard() {
           <div className="stat-label">Total Workouts</div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{hours}h {mins}m</div>
+          <div className="stat-number">
+            {hours}h {mins}m
+          </div>
           <div className="stat-label">Total Time Logged</div>
         </div>
         <div className="stat-card">
@@ -45,7 +54,7 @@ export default function Dashboard() {
         <div className="card" style={{ marginBottom: 28 }}>
           <div style={{ fontWeight: 600, marginBottom: 14 }}>Breakdown by Category</div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            {stats.byCategory.map(c => (
+            {stats.byCategory.map((c) => (
               <div key={c.category} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span>{CATEGORY_EMOJI[c.category] || '💪'}</span>
                 <span className={`tag tag-${c.category}`}>{c.category}</span>
@@ -56,20 +65,37 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, letterSpacing: 1 }}>RECENT WORKOUTS</h2>
-        <Link to="/history" style={{ color: 'var(--accent)', fontSize: 13 }}>View all →</Link>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 16,
+        }}
+      >
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, letterSpacing: 1 }}>
+          RECENT WORKOUTS
+        </h2>
+        <Link to="/history" style={{ color: 'var(--accent)', fontSize: 13 }}>
+          View all →
+        </Link>
       </div>
 
       {stats.recentWorkouts?.length === 0 ? (
         <div className="empty">
           <div className="empty-icon">🏋️</div>
           <div>No workouts yet.</div>
-          <Link to="/log" className="btn btn-primary" style={{ marginTop: 16, display: 'inline-flex' }}>Log your first workout</Link>
+          <Link
+            to="/log"
+            className="btn btn-primary"
+            style={{ marginTop: 16, display: 'inline-flex' }}
+          >
+            Log your first workout
+          </Link>
         </div>
       ) : (
         <div className="workout-list">
-          {stats.recentWorkouts.map(w => (
+          {stats.recentWorkouts.map((w) => (
             <div className="workout-card" key={w.id}>
               <span className={`tag tag-${w.category}`}>{w.category}</span>
               <div className="workout-info">
@@ -79,11 +105,13 @@ export default function Dashboard() {
                   <span>⏱ {w.duration_minutes} min</span>
                 </div>
               </div>
-              <Link to={`/edit/${w.id}`} className="btn btn-ghost btn-sm">Edit</Link>
+              <Link to={`/edit/${w.id}`} className="btn btn-ghost btn-sm">
+                Edit
+              </Link>
             </div>
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }

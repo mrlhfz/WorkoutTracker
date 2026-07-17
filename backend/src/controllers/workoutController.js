@@ -39,7 +39,10 @@ const workoutController = {
     try {
       const errors = validate(req.body);
       if (errors.length) return res.status(400).json({ success: false, errors });
-      const workout = workoutService.create({ ...req.body, duration_minutes: Number(req.body.duration_minutes) });
+      const workout = workoutService.create({
+        ...req.body,
+        duration_minutes: Number(req.body.duration_minutes),
+      });
       res.status(201).json({ success: true, data: workout });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
@@ -50,7 +53,10 @@ const workoutController = {
     try {
       const errors = validate(req.body);
       if (errors.length) return res.status(400).json({ success: false, errors });
-      const workout = workoutService.update(Number(req.params.id), { ...req.body, duration_minutes: Number(req.body.duration_minutes) });
+      const workout = workoutService.update(Number(req.params.id), {
+        ...req.body,
+        duration_minutes: Number(req.body.duration_minutes),
+      });
       if (!workout) return res.status(404).json({ success: false, error: 'Workout not found' });
       res.json({ success: true, data: workout });
     } catch (err) {
@@ -75,7 +81,7 @@ const workoutController = {
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
-  }
+  },
 };
 
 module.exports = workoutController;

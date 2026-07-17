@@ -21,9 +21,9 @@ const workoutService = {
     sql += ` ORDER BY ${col} ${dir}`;
 
     const workouts = db.query(sql, params);
-    return workouts.map(w => ({
+    return workouts.map((w) => ({
       ...w,
-      exercises: db.query('SELECT * FROM exercises WHERE workout_id = ?', [w.id])
+      exercises: db.query('SELECT * FROM exercises WHERE workout_id = ?', [w.id]),
     }));
   },
 
@@ -37,13 +37,20 @@ const workoutService = {
   create({ title, category, date, duration_minutes, notes = '', exercises = [] }) {
     const info = db.run(
       'INSERT INTO workouts (title, category, date, duration_minutes, notes) VALUES (?, ?, ?, ?, ?)',
-      [title, category, date, duration_minutes, notes]
+      [title, category, date, duration_minutes, notes],
     );
     const workoutId = info.lastInsertRowid;
     for (const ex of exercises) {
       db.run(
         'INSERT INTO exercises (workout_id, name, sets, reps, weight_kg, distance_km) VALUES (?, ?, ?, ?, ?, ?)',
-        [workoutId, ex.name, ex.sets ?? null, ex.reps ?? null, ex.weight_kg ?? null, ex.distance_km ?? null]
+        [
+          workoutId,
+          ex.name,
+          ex.sets ?? null,
+          ex.reps ?? null,
+          ex.weight_kg ?? null,
+          ex.distance_km ?? null,
+        ],
       );
     }
     return this.getById(workoutId);
@@ -54,13 +61,20 @@ const workoutService = {
     if (!existing) return null;
     db.run(
       'UPDATE workouts SET title=?, category=?, date=?, duration_minutes=?, notes=? WHERE id=?',
-      [title, category, date, duration_minutes, notes, id]
+      [title, category, date, duration_minutes, notes, id],
     );
     db.run('DELETE FROM exercises WHERE workout_id = ?', [id]);
     for (const ex of exercises) {
       db.run(
         'INSERT INTO exercises (workout_id, name, sets, reps, weight_kg, distance_km) VALUES (?, ?, ?, ?, ?, ?)',
-        [id, ex.name, ex.sets ?? null, ex.reps ?? null, ex.weight_kg ?? null, ex.distance_km ?? null]
+        [
+          id,
+          ex.name,
+          ex.sets ?? null,
+          ex.reps ?? null,
+          ex.weight_kg ?? null,
+          ex.distance_km ?? null,
+        ],
       );
     }
     return this.getById(id);
@@ -76,16 +90,18 @@ const workoutService = {
 
   getStats() {
     const total = db.get('SELECT COUNT(*) as count FROM workouts');
-    const byCategory = db.query('SELECT category, COUNT(*) as count FROM workouts GROUP BY category');
+    const byCategory = db.query(
+      'SELECT category, COUNT(*) as count FROM workouts GROUP BY category',
+    );
     const totalDuration = db.get('SELECT SUM(duration_minutes) as total FROM workouts');
     const recent = db.query('SELECT * FROM workouts ORDER BY date DESC LIMIT 5');
     return {
       totalWorkouts: total.count,
       byCategory,
       totalMinutes: totalDuration.total || 0,
-      recentWorkouts: recent
+      recentWorkouts: recent,
     };
-  }
+  },
 };
 
 module.exports = workoutService;
