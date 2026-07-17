@@ -31,5 +31,11 @@ export default [
       react: { version: 'detect' },
     },
   },
+  {
+    files: ['**/*.test.{js,jsx}', 'src/test/**'],
+    languageOptions: {
+      globals: globals.vitest,
+    },
+  },
   eslintConfigPrettier,
 ];

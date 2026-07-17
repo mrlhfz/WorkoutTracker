@@ -9,8 +9,8 @@ exercises). It's a monorepo consolidating two previously separate repos
 (`workout-tracker-frontend`, `workout-tracker-backend`) — `backend/` and `frontend/` are
 independent Node projects with their own `package.json`, run and developed separately.
 
-There is currently no test suite, no linter, and no CI configured in this repo. Don't assume
-`npm test` or `npm run lint` exist — check each `package.json`'s `scripts` before relying on one.
+Both packages have ESLint + Prettier and a test suite (see Commands below). There is still no
+CI configured in this repo.
 
 ## Commands
 
@@ -19,8 +19,14 @@ Backend (`backend/`):
 npm install
 npm start       # node src/index.js
 npm run dev     # nodemon src/index.js (auto-restart)
+npm run lint    # eslint .
+npm run format  # prettier --write .
+npm test        # node --test (discovers *.test.js under src/)
 ```
-Runs on `http://localhost:3001`. Health check: `GET /health`.
+Runs on `http://localhost:3001`. Health check: `GET /health`. Tests point `db/database.js` at
+a temp file via the `DB_PATH` env var (set at the top of each `*.test.js` before requiring the
+db module) rather than the real `data/workouts.db` — see `services/workoutService.test.js` for
+the pattern. Run a single test file directly: `node --test src/services/workoutService.test.js`.
 
 Frontend (`frontend/`):
 ```bash
@@ -29,8 +35,13 @@ npm run dev       # vite dev server on :5173, proxies /api -> localhost:3001
 npm run build     # production build to frontend/dist/
 npm run preview   # preview the production build locally
 npm run deploy    # gh-pages -d dist (publishes dist/ to GitHub Pages)
+npm run lint      # eslint .
+npm run format    # prettier --write .
+npm test          # vitest run
 ```
-The backend must be running for the frontend to have data to display.
+The backend must be running for the frontend to have data to display. Frontend tests use
+Vitest + jsdom + React Testing Library (config lives in the `test` block of `vite.config.js`,
+not a separate vitest config file). Run a single test file: `npx vitest run src/pages/Dashboard.test.jsx`.
 
 ## Architecture
 
@@ -38,6 +49,11 @@ The backend must be running for the frontend to have data to display.
 
 Strict layering, one direction only — never skip a layer:
 `routes/workouts.js` → `controllers/workoutController.js` → `services/workoutService.js` → `db/database.js`
+
+`app.js` assembles the Express app (middleware, routes, error handlers) via `createApp()` and
+is required by both `index.js` (which calls `initDb()` then `app.listen()`) and
+`routes/workouts.test.js` (which calls `initDb()` then hits the app with `supertest`, no
+`listen()` needed) — keep new middleware/routes in `app.js`, not `index.js`.
 
 - **routes** only wires HTTP verbs/paths to controller methods.
 - **controllers** parse `req`, hand-roll validation (see the `validate()`/`CATEGORIES` block
