@@ -1,4 +1,4 @@
-const initSqlJs = require('sql.js');
+const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
@@ -8,16 +8,9 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 let db;
 
 async function initDb() {
-  const SQL = await initSqlJs();
+  db = new Database(DB_PATH);
 
-  if (fs.existsSync(DB_PATH)) {
-    const fileBuffer = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(fileBuffer);
-  } else {
-    db = new SQL.Database();
-  }
-
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS workouts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -28,7 +21,7 @@ async function initDb() {
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS exercises (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       workout_id INTEGER NOT NULL,
@@ -41,33 +34,24 @@ async function initDb() {
     )
   `);
 
-  saveDb();
   return db;
 }
 
-function saveDb() {
-  const data = db.export();
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
-}
-
 function query(sql, params = []) {
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
-  const rows = [];
-  while (stmt.step()) rows.push(stmt.getAsObject());
-  stmt.free();
-  return rows;
+  return db.prepare(sql).all(params);
 }
 
 function run(sql, params = []) {
-  db.run(sql, params);
-  const rowid = query('SELECT last_insert_rowid() as id')[0].id;
-  saveDb();
-  return { lastInsertRowid: rowid };
+  const info = db.prepare(sql).run(params);
+  return { lastInsertRowid: info.lastInsertRowid };
 }
 
 function get(sql, params = []) {
-  return query(sql, params)[0] || null;
+  return db.prepare(sql).get(params) || null;
 }
 
-module.exports = { initDb, query, run, get };
+function close() {
+  db.close();
+}
+
+module.exports = { initDb, query, run, get, close };

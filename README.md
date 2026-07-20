@@ -28,7 +28,7 @@ This repository contains both the frontend and backend for WorkoutTracker, previ
 | -------- | ----------------------------------- |
 | Frontend | React 18, React Router v6, Vite     |
 | Backend  | Node.js, Express 4                  |
-| Database | SQLite via sql.js (file-persisted)  |
+| Database | SQLite via better-sqlite3           |
 
 ---
 

@@ -64,12 +64,13 @@ is required by both `index.js` (which calls `initDb()` then `app.listen()`) and
   `ALLOWED_SORTS` allowlist that guards the dynamic `ORDER BY ${col}` clause in `getAll()`
   against injection via the `sort` query param — keep any new sortable column added there in
   sync with the DB schema.
-- **db** (`db/database.js`) wraps `sql.js` (SQLite compiled to WASM), not a native driver.
-  The entire database is loaded into memory on boot and **the whole file is rewritten to disk
-  on every single `run()` call** (`saveDb()` → `db.export()` + `fs.writeFileSync`). There are
-  no transactions — a multi-step write (e.g. `workoutService.update()` deleting and
-  re-inserting `exercises` rows) is several separate full-file rewrites, not one atomic
-  operation. Be aware of this when adding write-heavy features.
+- **db** (`db/database.js`) wraps `better-sqlite3`, a native synchronous SQLite driver — each
+  `run()`/`query()`/`get()` call is a real incremental disk write via `.prepare().run()/.all()/.get()`,
+  not a full-file rewrite. Still no transactions, though — a multi-step write (e.g.
+  `workoutService.update()` deleting and re-inserting `exercises` rows) is still several separate
+  statements, not one atomic operation. `db.close()` is exported and must be called before
+  deleting a test's temp DB file on Windows, where an open native handle blocks `fs.rmSync` — see
+  the `after()` hook in `services/workoutService.test.js`.
 
 ### Data model
 

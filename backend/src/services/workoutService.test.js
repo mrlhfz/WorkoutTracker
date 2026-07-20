@@ -15,6 +15,7 @@ before(async () => {
 });
 
 after(() => {
+  db.close();
   fs.rmSync(TEST_DB_PATH, { force: true });
 });
 
