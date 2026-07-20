@@ -1,10 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const workoutRoutes = require('./routes/workouts');
+import express, { type Application, type ErrorRequestHandler } from 'express';
+import cors from 'cors';
+import workoutRoutes from './routes/workouts';
 
 const DEFAULT_ORIGINS = ['https://mrlhfz.github.io', 'http://localhost:5173'];
 
-function createApp() {
+function createApp(): Application {
   const app = express();
 
   const origins = process.env.ALLOWED_ORIGINS
@@ -19,12 +19,14 @@ function createApp() {
   app.use('/api/workouts', workoutRoutes);
 
   app.use((req, res) => res.status(404).json({ success: false, error: 'Route not found' }));
-  app.use((err, req, res, next) => {
+
+  const errorHandler: ErrorRequestHandler = (err, req, res) => {
     console.error(err.stack);
     res.status(500).json({ success: false, error: 'Internal server error' });
-  });
+  };
+  app.use(errorHandler);
 
   return app;
 }
 
-module.exports = createApp;
+export default createApp;

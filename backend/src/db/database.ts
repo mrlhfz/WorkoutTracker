@@ -1,13 +1,13 @@
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/workouts.db');
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
-let db;
+let db: Database.Database;
 
-async function initDb() {
+async function initDb(): Promise<Database.Database> {
   db = new Database(DB_PATH);
 
   db.exec(`
@@ -37,21 +37,21 @@ async function initDb() {
   return db;
 }
 
-function query(sql, params = []) {
-  return db.prepare(sql).all(params);
+function query<T = unknown>(sql: string, params: unknown[] = []): T[] {
+  return db.prepare(sql).all(params) as T[];
 }
 
-function run(sql, params = []) {
+function run(sql: string, params: unknown[] = []): { lastInsertRowid: number | bigint } {
   const info = db.prepare(sql).run(params);
   return { lastInsertRowid: info.lastInsertRowid };
 }
 
-function get(sql, params = []) {
-  return db.prepare(sql).get(params) || null;
+function get<T = unknown>(sql: string, params: unknown[] = []): T | null {
+  return (db.prepare(sql).get(params) as T) ?? null;
 }
 
-function close() {
+function close(): void {
   db.close();
 }
 
-module.exports = { initDb, query, run, get, close };
+export { initDb, query, run, get, close };

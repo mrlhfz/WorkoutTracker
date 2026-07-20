@@ -1,17 +1,18 @@
-const { test, before, beforeEach, after } = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
-const request = require('supertest');
+import { test, before, beforeEach, after } from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import request from 'supertest';
+import type { Application } from 'express';
 
 const TEST_DB_PATH = path.join(os.tmpdir(), `workout-tracker-route-test-${process.pid}.db`);
 process.env.DB_PATH = TEST_DB_PATH;
 
-const db = require('../db/database');
-const createApp = require('../app');
+import * as db from '../db/database';
+import createApp from '../app';
 
-let app;
+let app: Application;
 
 before(async () => {
   await db.initDb();

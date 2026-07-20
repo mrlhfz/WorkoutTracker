@@ -1,14 +1,14 @@
-const { test, before, beforeEach, after } = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
+import { test, before, beforeEach, after } from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
 
 const TEST_DB_PATH = path.join(os.tmpdir(), `workout-tracker-service-test-${process.pid}.db`);
 process.env.DB_PATH = TEST_DB_PATH;
 
-const db = require('../db/database');
-const workoutService = require('./workoutService');
+import * as db from '../db/database';
+import workoutService from './workoutService';
 
 before(async () => {
   await db.initDb();
@@ -103,9 +103,9 @@ test('update() replaces a workout and its exercises', () => {
     exercises: [{ name: 'Deadlift', sets: 3, reps: 5, weight_kg: 100 }],
   });
 
-  assert.equal(updated.title, 'Leg Day (heavy)');
-  assert.equal(updated.exercises.length, 1);
-  assert.equal(updated.exercises[0].name, 'Deadlift');
+  assert.equal(updated?.title, 'Leg Day (heavy)');
+  assert.equal(updated?.exercises.length, 1);
+  assert.equal(updated?.exercises[0].name, 'Deadlift');
 });
 
 test('update() returns null for a nonexistent workout', () => {
@@ -130,7 +130,7 @@ test('delete() removes a workout and its exercises', () => {
 
   const deleted = workoutService.delete(created.id);
 
-  assert.equal(deleted.id, created.id);
+  assert.equal(deleted?.id, created.id);
   assert.equal(workoutService.getById(created.id), null);
 });
 

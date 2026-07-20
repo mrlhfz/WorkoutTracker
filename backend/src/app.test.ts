@@ -1,7 +1,7 @@
-const { test, afterEach } = require('node:test');
-const assert = require('node:assert/strict');
-const request = require('supertest');
-const createApp = require('./app');
+import { test, afterEach } from 'node:test';
+import assert from 'node:assert/strict';
+import request from 'supertest';
+import createApp from './app';
 
 afterEach(() => {
   delete process.env.ALLOWED_ORIGINS;

@@ -1,9 +1,16 @@
-const workoutService = require('../services/workoutService');
+import type { Request, Response } from 'express';
+import workoutService from '../services/workoutService';
+import type { WorkoutQuery } from '../types';
 
 const CATEGORIES = ['strength', 'cardio', 'flexibility', 'sports', 'other'];
 
-function validate(body) {
-  const errors = [];
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validate(body: any): string[] {
+  const errors: string[] = [];
   if (!body.title || typeof body.title !== 'string' || body.title.trim().length === 0)
     errors.push('title is required');
   if (!CATEGORIES.includes(body.category))
@@ -16,26 +23,26 @@ function validate(body) {
 }
 
 const workoutController = {
-  getAll(req, res) {
+  getAll(req: Request, res: Response) {
     try {
-      const workouts = workoutService.getAll(req.query);
+      const workouts = workoutService.getAll(req.query as WorkoutQuery);
       res.json({ success: true, data: workouts, count: workouts.length });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, error: errorMessage(err) });
     }
   },
 
-  getById(req, res) {
+  getById(req: Request, res: Response) {
     try {
       const workout = workoutService.getById(Number(req.params.id));
       if (!workout) return res.status(404).json({ success: false, error: 'Workout not found' });
       res.json({ success: true, data: workout });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, error: errorMessage(err) });
     }
   },
 
-  create(req, res) {
+  create(req: Request, res: Response) {
     try {
       const errors = validate(req.body);
       if (errors.length) return res.status(400).json({ success: false, errors });
@@ -45,11 +52,11 @@ const workoutController = {
       });
       res.status(201).json({ success: true, data: workout });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, error: errorMessage(err) });
     }
   },
 
-  update(req, res) {
+  update(req: Request, res: Response) {
     try {
       const errors = validate(req.body);
       if (errors.length) return res.status(400).json({ success: false, errors });
@@ -60,28 +67,28 @@ const workoutController = {
       if (!workout) return res.status(404).json({ success: false, error: 'Workout not found' });
       res.json({ success: true, data: workout });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, error: errorMessage(err) });
     }
   },
 
-  delete(req, res) {
+  delete(req: Request, res: Response) {
     try {
       const workout = workoutService.delete(Number(req.params.id));
       if (!workout) return res.status(404).json({ success: false, error: 'Workout not found' });
       res.json({ success: true, message: 'Workout deleted', data: workout });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, error: errorMessage(err) });
     }
   },
 
-  getStats(req, res) {
+  getStats(req: Request, res: Response) {
     try {
       const stats = workoutService.getStats();
       res.json({ success: true, data: stats });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, error: errorMessage(err) });
     }
   },
 };
 
-module.exports = workoutController;
+export default workoutController;
