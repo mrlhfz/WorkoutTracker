@@ -157,6 +157,12 @@ The frontend expects the backend API to be running (see `frontend/src/api/workou
 
 ## Deployment
 
+**Live frontend:** https://mrlhfz.github.io/WorkoutTracker/ (deployed via `npm run deploy` in
+`frontend/`, GitHub Pages). No backend is deployed yet, so the app currently shows loading/error
+states — `VITE_API_URL` isn't set, so it falls back to a relative `/api` path with nothing to
+answer it at this origin. Deploy the backend somewhere (Render/Railway/etc.), rebuild with
+`VITE_API_URL` pointed at it, and redeploy to make the live site fully functional.
+
 Can be deployed using:
 
 - **Frontend**: Vercel, Netlify, or GitHub Pages (`npm run build` → deploy `frontend/dist/`)
