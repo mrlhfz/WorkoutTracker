@@ -1,5 +1,7 @@
 # WorkoutTracker
 
+[![CI](https://github.com/mrlhfz/WorkoutTracker/actions/workflows/ci.yml/badge.svg)](https://github.com/mrlhfz/WorkoutTracker/actions/workflows/ci.yml)
+
 A fullstack workout tracking application to log, search, and manage your training sessions.
 
 This repository contains both the frontend and backend for WorkoutTracker, previously maintained as two separate repositories ([workout-tracker-frontend](https://github.com/mrlhfz/workout-tracker-frontend) and [workout-tracker-backend](https://github.com/mrlhfz/workout-tracker-backend)) and consolidated here into a single monorepo.
