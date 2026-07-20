@@ -7,75 +7,93 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 WorkoutTracker is a small fullstack CRUD app (log/search/filter/sort workouts and their
 exercises). It's a monorepo consolidating two previously separate repos
 (`workout-tracker-frontend`, `workout-tracker-backend`) — `backend/` and `frontend/` are
-independent Node projects with their own `package.json`, run and developed separately.
+independent Node projects with their own `package.json`, run and developed separately. Both are
+100% TypeScript.
 
-Both packages have ESLint + Prettier and a test suite (see Commands below), and GitHub Actions
-runs lint + test (+ build for the frontend) on every push/PR to `main` (`.github/workflows/ci.yml`).
+Both packages have ESLint + Prettier, a `tsc --noEmit` typecheck script, and a test suite (see
+Commands below), and GitHub Actions runs typecheck + lint + test (+ build for the frontend) on
+every push/PR to `main` (`.github/workflows/ci.yml`).
 
 ## Commands
 
 Backend (`backend/`):
 ```bash
 npm install
-npm start       # node src/index.js
-npm run dev     # nodemon src/index.js (auto-restart)
-npm run lint    # eslint .
-npm run format  # prettier --write .
-npm test        # node --test (discovers *.test.js under src/)
+npm start          # tsx src/index.ts
+npm run dev        # tsx watch src/index.ts (auto-restart; no nodemon)
+npm run lint       # eslint .
+npm run format     # prettier --write .
+npm run typecheck  # tsc --noEmit
+npm test           # tsx --test (discovers *.test.ts under src/)
 ```
-Runs on `http://localhost:3001`. Health check: `GET /health`. Tests point `db/database.js` at
-a temp file via the `DB_PATH` env var (set at the top of each `*.test.js` before requiring the
-db module) rather than the real `data/workouts.db` — see `services/workoutService.test.js` for
-the pattern. Run a single test file directly: `node --test src/services/workoutService.test.js`.
+Runs on `http://localhost:3001`. Health check: `GET /health`. Tests point `db/database.ts` at
+a temp file via the `DB_PATH` env var (set at the top of each `*.test.ts` before requiring the
+db module) rather than the real `data/workouts.db` — see `services/workoutService.test.ts` for
+the pattern. Run a single test file directly: `tsx --test src/services/workoutService.test.ts`.
+**Do not pass an explicit directory to `--test`** (e.g. `tsx --test src`) — Node's test runner
+then treats every `.ts` file in that directory as a test, including `index.ts`, whose
+`app.listen()` hangs the process. No path (or a specific file) is what makes it only match
+`*.test.ts`.
 
 Frontend (`frontend/`):
 ```bash
 npm install
-npm run dev       # vite dev server on :5173, proxies /api -> localhost:3001
-npm run build     # production build to frontend/dist/
-npm run preview   # preview the production build locally
-npm run deploy    # gh-pages -d dist (publishes dist/ to GitHub Pages)
-npm run lint      # eslint .
-npm run format    # prettier --write .
-npm test          # vitest run
+npm run dev        # vite dev server on :5173, proxies /api -> localhost:3001
+npm run build      # production build to frontend/dist/
+npm run preview    # preview the production build locally
+npm run deploy     # gh-pages -d dist (publishes dist/ to GitHub Pages)
+npm run lint       # eslint .
+npm run format     # prettier --write .
+npm run typecheck  # tsc --noEmit
+npm test           # vitest run
 ```
 The backend must be running for the frontend to have data to display. Frontend tests use
-Vitest + jsdom + React Testing Library (config lives in the `test` block of `vite.config.js`,
-not a separate vitest config file). Run a single test file: `npx vitest run src/pages/Dashboard.test.jsx`.
+Vitest + jsdom + React Testing Library (config lives in the `test` block of `vite.config.ts`,
+not a separate vitest config file). Run a single test file: `npx vitest run src/pages/Dashboard.test.tsx`.
+Modules mocked with `vi.mock()` need `vi.mocked(fn).mockResolvedValue(...)` rather than
+`fn.mockResolvedValue(...)` directly — the import is typed against the real module's signature,
+which has no `.mockResolvedValue`.
+
+Both packages' `typescript` is pinned to `6.0.3` rather than latest, and `typescript-eslint`'s
+recommended rules are scoped to `**/*.{ts,tsx}` via `files` + `extends` in each `eslint.config.js`
+(applying them repo-wide flags `eslint.config.js`'s own imports). See "TypeScript setup" below.
 
 ## Architecture
 
 ### Backend request flow
 
 Strict layering, one direction only — never skip a layer:
-`routes/workouts.js` → `controllers/workoutController.js` → `services/workoutService.js` → `db/database.js`
+`routes/workouts.ts` → `controllers/workoutController.ts` → `services/workoutService.ts` → `db/database.ts`
 
-`app.js` assembles the Express app (middleware, routes, error handlers) via `createApp()` and
-is required by both `index.js` (which calls `initDb()` then `app.listen()`) and
-`routes/workouts.test.js` (which calls `initDb()` then hits the app with `supertest`, no
-`listen()` needed) — keep new middleware/routes in `app.js`, not `index.js`.
+`app.ts` assembles the Express app (middleware, routes, error handlers) via `createApp()` and
+is required by both `index.ts` (which calls `initDb()` then `app.listen()`) and
+`routes/workouts.test.ts` (which calls `initDb()` then hits the app with `supertest`, no
+`listen()` needed) — keep new middleware/routes in `app.ts`, not `index.ts`.
 
 - **routes** only wires HTTP verbs/paths to controller methods.
 - **controllers** parse `req`, hand-roll validation (see the `validate()`/`CATEGORIES` block
-  in `workoutController.js` — there's no schema-validation library), and shape the
+  in `workoutController.ts` — there's no schema-validation library), and shape the
   `{ success, data/error }` JSON envelope. All error handling is a try/catch per method
   returning a 500 with `err.message` — there's no shared error-handling middleware.
-- **services** (`workoutService.js`) hold all SQL and business logic, including the
+- **services** (`workoutService.ts`) hold all SQL and business logic, including the
   `ALLOWED_SORTS` allowlist that guards the dynamic `ORDER BY ${col}` clause in `getAll()`
   against injection via the `sort` query param — keep any new sortable column added there in
   sync with the DB schema.
-- **db** (`db/database.js`) wraps `better-sqlite3`, a native synchronous SQLite driver — each
+- **db** (`db/database.ts`) wraps `better-sqlite3`, a native synchronous SQLite driver — each
   `run()`/`query()`/`get()` call is a real incremental disk write via `.prepare().run()/.all()/.get()`,
   not a full-file rewrite. Still no transactions, though — a multi-step write (e.g.
   `workoutService.update()` deleting and re-inserting `exercises` rows) is still several separate
   statements, not one atomic operation. `db.close()` is exported and must be called before
   deleting a test's temp DB file on Windows, where an open native handle blocks `fs.rmSync` — see
-  the `after()` hook in `services/workoutService.test.js`.
+  the `after()` hook in `services/workoutService.test.ts`.
+- **types** (`types.ts`) defines `Workout`/`Exercise`/`WorkoutInput`/`Stats` etc., imported
+  throughout the layers above. `query<T>()`/`get<T>()` in `db/database.ts` are generic — callers
+  supply the row shape (e.g. `db.query<Workout>(sql, params)`).
 
 ### Data model
 
 Two tables with a one-to-many relationship, schema defined inline in `initDb()`
-(`db/database.js`) via `CREATE TABLE IF NOT EXISTS` — there is no migration framework, so any
+(`db/database.ts`) via `CREATE TABLE IF NOT EXISTS` — there is no migration framework, so any
 schema change is a direct edit to that inline SQL (safe for `ADD COLUMN`-style additive
 changes since the app owns its own dev DB; be more careful once real data exists anywhere it's
 deployed).
@@ -92,25 +110,42 @@ list sizes grow.
 ### Frontend
 
 Plain React + Vite, no state-management library, no CSS framework, no data-fetching library
-(raw `fetch`). `frontend/src/api/workouts.js` is a single object (`api`) wrapping every backend
+(raw `fetch`). `frontend/src/api/workouts.ts` is a single object (`api`) wrapping every backend
 endpoint — add new endpoints there rather than calling `fetch` directly from components/pages.
+`frontend/src/types.ts` mirrors `backend/src/types.ts` by hand (frontend and backend are
+independent npm projects, not a workspace, so these aren't literally shared — keep both in sync
+when the API shape changes).
 
-`App.jsx` owns the route table and sidebar nav in one place (`NAV` array + `<Routes>` block) —
+`App.tsx` owns the route table and sidebar nav in one place (`NAV` array + `<Routes>` block) —
 adding a page means updating both.
 
-`api/workouts.js`'s request base is `import.meta.env.VITE_API_URL`, falling back to the relative
-`/api` path used by the local Vite proxy (`vite.config.js`) when unset — see `frontend/.env.example`.
+`api/workouts.ts`'s request base is `import.meta.env.VITE_API_URL`, falling back to the relative
+`/api` path used by the local Vite proxy (`vite.config.ts`) when unset — see `frontend/.env.example`.
 This is what makes deploying frontend and backend to two different hosts (e.g. GitHub Pages +
 Render) actually work; set `VITE_API_URL` to the deployed backend's full URL (including `/api`)
 before running `npm run build` for that kind of deploy.
 
+`WorkoutForm.tsx` keeps its own local form-state types (`ExerciseFormState`, etc.) distinct from
+`types.ts`'s API shapes — controlled `<input>` values are always strings in this component's
+state, converted to `number | null` only in `handleSubmit`, so the two shapes genuinely differ.
+
 ### CORS
 
-`backend/src/app.js`'s `createApp()` reads the allowed origins from the comma-separated
+`backend/src/app.ts`'s `createApp()` reads the allowed origins from the comma-separated
 `ALLOWED_ORIGINS` env var, falling back to `DEFAULT_ORIGINS` (`https://mrlhfz.github.io`,
-`http://localhost:5173`) when unset — see `backend/.env.example`. `index.js` loads `.env` via
-`dotenv` before anything else; `app.js` itself doesn't depend on dotenv (kept env-loading in the
+`http://localhost:5173`) when unset — see `backend/.env.example`. `index.ts` loads `.env` via
+`dotenv` before anything else; `app.ts` itself doesn't depend on dotenv (kept env-loading in the
 entrypoint so `createApp()` behaves the same way under tests, which set `process.env` directly).
+
+### TypeScript setup
+
+Both packages run source directly via `tsx` (esbuild-based) rather than a `tsc` build step —
+`tsc --noEmit` is used only for typechecking (locally via `npm run typecheck` and in CI), never
+to emit output. `typescript` is pinned to `6.0.3` in both packages because `typescript-eslint`'s
+peer range caps below whatever newer `typescript` version npm resolves by default — check that
+range before bumping either package. `@types/react`/`@types/react-dom` must stay on the `18.x`
+line to match the installed `react`/`react-dom` majors (they resolve to `19.x` by default
+otherwise, which type-mismatches against React 18's actual API).
 
 ## Project docs
 

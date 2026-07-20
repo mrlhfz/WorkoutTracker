@@ -24,11 +24,11 @@ This repository contains both the frontend and backend for WorkoutTracker, previ
 
 ## Tech Stack
 
-| Layer    | Technology                         |
-| -------- | ----------------------------------- |
-| Frontend | React 18, React Router v6, Vite     |
-| Backend  | Node.js, Express 4                  |
-| Database | SQLite via better-sqlite3           |
+| Layer    | Technology                                |
+| -------- | ------------------------------------------ |
+| Frontend | React 18, React Router v6, Vite, TypeScript |
+| Backend  | Node.js, Express 4, TypeScript (via tsx)   |
+| Database | SQLite via better-sqlite3                  |
 
 ---
 
@@ -38,24 +38,27 @@ This repository contains both the frontend and backend for WorkoutTracker, previ
 WorkoutTracker/
 ├── backend/
 │   ├── src/
-│   │   ├── db/database.js              # SQLite setup & helpers
-│   │   ├── services/workoutService.js  # DB logic
-│   │   ├── controllers/workoutController.js  # Request/response
-│   │   ├── routes/workouts.js          # Express routes
-│   │   └── index.js                    # App entry point
+│   │   ├── db/database.ts              # SQLite setup & helpers (better-sqlite3)
+│   │   ├── services/workoutService.ts  # DB logic
+│   │   ├── controllers/workoutController.ts  # Request/response
+│   │   ├── routes/workouts.ts          # Express routes
+│   │   ├── app.ts                      # Express app assembly
+│   │   ├── types.ts                    # Shared Workout/Exercise types
+│   │   └── index.ts                    # App entry point
 │   ├── data/                           # SQLite file (auto-created)
 │   └── package.json
 ├── frontend/
 │   ├── src/
-│   │   ├── api/workouts.js             # API client
-│   │   ├── components/WorkoutForm.jsx
+│   │   ├── api/workouts.ts             # API client
+│   │   ├── components/WorkoutForm.tsx
 │   │   ├── pages/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── History.jsx
-│   │   │   ├── LogWorkout.jsx
-│   │   │   └── EditWorkout.jsx
-│   │   ├── App.jsx
-│   │   ├── main.jsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── History.tsx
+│   │   │   ├── LogWorkout.tsx
+│   │   │   └── EditWorkout.tsx
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   ├── types.ts                    # Mirrors backend/src/types.ts
 │   │   └── index.css
 │   └── package.json
 ├── README.md
@@ -82,7 +85,7 @@ npm install
 npm run dev
 ```
 
-The frontend expects the backend API to be running (see `frontend/src/api/workouts.js` for the configured base URL).
+The frontend expects the backend API to be running (see `frontend/src/api/workouts.ts` for the configured base URL).
 
 ---
 
