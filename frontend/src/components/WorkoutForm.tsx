@@ -1,9 +1,42 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
+import type { WorkoutInput } from '../types';
 
 const CATEGORIES = ['strength', 'cardio', 'flexibility', 'sports', 'other'];
 
-function emptyExercise() {
+interface ExerciseFormState {
+  name: string;
+  sets: string;
+  reps: string;
+  weight_kg: string;
+  distance_km: string;
+}
+
+function emptyExercise(): ExerciseFormState {
   return { name: '', sets: '', reps: '', weight_kg: '', distance_km: '' };
+}
+
+interface WorkoutFormInitialExercise {
+  name: string;
+  sets?: number | string | null;
+  reps?: number | string | null;
+  weight_kg?: number | string | null;
+  distance_km?: number | string | null;
+}
+
+export interface WorkoutFormInitial {
+  title?: string;
+  category?: string;
+  date?: string;
+  duration_minutes?: number | string;
+  notes?: string;
+  exercises?: WorkoutFormInitialExercise[];
+}
+
+interface WorkoutFormProps {
+  initial?: WorkoutFormInitial;
+  onSubmit: (data: WorkoutInput) => Promise<unknown>;
+  submitLabel?: string;
+  loading?: boolean;
 }
 
 export default function WorkoutForm({
@@ -11,32 +44,32 @@ export default function WorkoutForm({
   onSubmit,
   submitLabel = 'Save',
   loading = false,
-}) {
+}: WorkoutFormProps) {
   const [form, setForm] = useState({
     title: initial.title || '',
     category: initial.category || 'strength',
     date: initial.date || new Date().toISOString().slice(0, 10),
-    duration_minutes: initial.duration_minutes || '',
+    duration_minutes: initial.duration_minutes != null ? String(initial.duration_minutes) : '',
     notes: initial.notes || '',
   });
-  const [exercises, setExercises] = useState(
+  const [exercises, setExercises] = useState<ExerciseFormState[]>(
     initial.exercises?.length
       ? initial.exercises.map((e) => ({
-          ...e,
-          sets: e.sets ?? '',
-          reps: e.reps ?? '',
-          weight_kg: e.weight_kg ?? '',
-          distance_km: e.distance_km ?? '',
+          name: e.name,
+          sets: e.sets != null ? String(e.sets) : '',
+          reps: e.reps != null ? String(e.reps) : '',
+          weight_kg: e.weight_kg != null ? String(e.weight_kg) : '',
+          distance_km: e.distance_km != null ? String(e.distance_km) : '',
         }))
       : [emptyExercise()],
   );
-  const [errors, setErrors] = useState([]);
+  const [errors, setErrors] = useState<string[]>([]);
 
-  function setField(key, value) {
+  function setField(key: keyof typeof form, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function setExField(i, key, value) {
+  function setExField(i: number, key: keyof ExerciseFormState, value: string) {
     setExercises((exs) => exs.map((e, idx) => (idx === i ? { ...e, [key]: value } : e)));
   }
 
@@ -44,11 +77,11 @@ export default function WorkoutForm({
     setExercises((exs) => [...exs, emptyExercise()]);
   }
 
-  function removeExercise(i) {
+  function removeExercise(i: number) {
     setExercises((exs) => exs.filter((_, idx) => idx !== i));
   }
 
-  function handleSubmit(e) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErrors([]);
 
@@ -66,7 +99,9 @@ export default function WorkoutForm({
       ...form,
       duration_minutes: Number(form.duration_minutes),
       exercises: cleanExercises,
-    }).catch((err) => setErrors([err.message]));
+    }).catch((err: unknown) => {
+      setErrors([err instanceof Error ? err.message : String(err)]);
+    });
   }
 
   const isCardio = form.category === 'cardio' || form.category === 'sports';

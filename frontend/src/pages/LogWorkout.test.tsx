@@ -1,9 +1,9 @@
 import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import LogWorkout from './LogWorkout.jsx';
+import LogWorkout from './LogWorkout';
 
-vi.mock('../api/workouts.js', () => ({
+vi.mock('../api/workouts', () => ({
   api: { createWorkout: vi.fn() },
 }));
 

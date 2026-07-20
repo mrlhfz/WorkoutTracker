@@ -1,12 +1,16 @@
-import { describe, test, expect, afterEach } from 'vitest';
-import { api } from './workouts.js';
+import { describe, test, expect, afterEach, vi } from 'vitest';
+import { api } from './workouts';
+import type { WorkoutInput } from '../types';
 
-function mockFetchOnce(body, { ok = true, status = ok ? 200 : 400 } = {}) {
+function mockFetchOnce(
+  body: unknown,
+  { ok = true, status = ok ? 200 : 400 }: { ok?: boolean; status?: number } = {},
+) {
   globalThis.fetch = vi.fn().mockResolvedValue({
     ok,
     status,
     json: () => Promise.resolve(body),
-  });
+  }) as unknown as typeof fetch;
 }
 
 describe('api/workouts', () => {
@@ -36,7 +40,7 @@ describe('api/workouts', () => {
   test('createWorkout() sends a POST with a JSON body', async () => {
     mockFetchOnce({ success: true, data: { id: 1 } }, { status: 201 });
 
-    const body = { title: 'Leg Day', category: 'strength' };
+    const body = { title: 'Leg Day', category: 'strength' } as WorkoutInput;
     await api.createWorkout(body);
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -62,7 +66,9 @@ describe('api/workouts', () => {
       { ok: false },
     );
 
-    await expect(api.createWorkout({})).rejects.toThrow('title is required, date is required');
+    await expect(api.createWorkout({} as WorkoutInput)).rejects.toThrow(
+      'title is required, date is required',
+    );
   });
 
   test('throws the single error message when the response has an error string', async () => {

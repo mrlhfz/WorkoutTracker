@@ -1,28 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { api } from '../api/workouts.js';
-import WorkoutForm from '../components/WorkoutForm.jsx';
+import { api } from '../api/workouts';
+import WorkoutForm from '../components/WorkoutForm';
+import type { WorkoutInput, WorkoutWithExercises } from '../types';
 
 export default function EditWorkout() {
-  const { id } = useParams();
+  const { id } = useParams<'id'>();
   const navigate = useNavigate();
-  const [workout, setWorkout] = useState(null);
+  const [workout, setWorkout] = useState<WorkoutWithExercises | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     api
-      .getWorkout(id)
+      .getWorkout(id!)
       .then((res) => setWorkout(res.data))
-      .catch((e) => setError(e.message))
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setFetching(false));
   }, [id]);
 
-  async function handleSubmit(data) {
+  async function handleSubmit(data: WorkoutInput) {
     setLoading(true);
     try {
-      await api.updateWorkout(id, data);
+      await api.updateWorkout(id!, data);
       navigate('/history');
     } finally {
       setLoading(false);

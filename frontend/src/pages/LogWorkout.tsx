@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api/workouts.js';
-import WorkoutForm from '../components/WorkoutForm.jsx';
+import { api } from '../api/workouts';
+import WorkoutForm from '../components/WorkoutForm';
+import type { WorkoutInput } from '../types';
 
 export default function LogWorkout() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  async function handleSubmit(data) {
+  async function handleSubmit(data: WorkoutInput) {
     setLoading(true);
     try {
       await api.createWorkout(data);

@@ -1,10 +1,10 @@
 import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import EditWorkout from './EditWorkout.jsx';
-import { api } from '../api/workouts.js';
+import EditWorkout from './EditWorkout';
+import { api } from '../api/workouts';
 
-vi.mock('../api/workouts.js', () => ({
+vi.mock('../api/workouts', () => ({
   api: { getWorkout: vi.fn(), updateWorkout: vi.fn() },
 }));
 
@@ -20,7 +20,8 @@ function renderAtEditRoute(id = '1') {
 
 describe('EditWorkout', () => {
   test('loads the workout and pre-fills the form', async () => {
-    api.getWorkout.mockResolvedValue({
+    vi.mocked(api.getWorkout).mockResolvedValue({
+      success: true,
       data: {
         id: 1,
         title: 'Leg Day',
@@ -28,6 +29,7 @@ describe('EditWorkout', () => {
         date: '2026-01-01',
         duration_minutes: 45,
         notes: '',
+        created_at: '2026-01-01 00:00:00',
         exercises: [],
       },
     });
@@ -39,7 +41,7 @@ describe('EditWorkout', () => {
   });
 
   test('renders an error message when the workout fails to load', async () => {
-    api.getWorkout.mockRejectedValue(new Error('Workout not found'));
+    vi.mocked(api.getWorkout).mockRejectedValue(new Error('Workout not found'));
 
     renderAtEditRoute('999');
 

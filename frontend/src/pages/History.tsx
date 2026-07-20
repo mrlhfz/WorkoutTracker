@@ -1,23 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../api/workouts.js';
+import { api } from '../api/workouts';
+import type { WorkoutWithExercises } from '../types';
 
 const CATEGORIES = ['', 'strength', 'cardio', 'flexibility', 'sports', 'other'];
 
 export default function History() {
-  const [workouts, setWorkouts] = useState([]);
+  const [workouts, setWorkouts] = useState<WorkoutWithExercises[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [sort, setSort] = useState('date');
   const [order, setOrder] = useState('desc');
-  const [deleting, setDeleting] = useState(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const fetchWorkouts = useCallback(() => {
     setLoading(true);
-    const params = {};
+    const params: Record<string, string> = {};
     if (search) params.search = search;
     if (category) params.category = category;
     params.sort = sort;
@@ -29,7 +30,7 @@ export default function History() {
         setWorkouts(res.data);
         setError('');
       })
-      .catch((e) => setError(e.message))
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, [search, category, sort, order]);
 
@@ -38,14 +39,14 @@ export default function History() {
     return () => clearTimeout(t);
   }, [fetchWorkouts]);
 
-  async function handleDelete(id) {
+  async function handleDelete(id: number) {
     if (!confirm('Delete this workout?')) return;
     setDeleting(id);
     try {
       await api.deleteWorkout(id);
       setWorkouts((ws) => ws.filter((w) => w.id !== id));
-    } catch (e) {
-      alert(e.message);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : String(e));
     } finally {
       setDeleting(null);
     }

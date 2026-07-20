@@ -13,9 +13,9 @@ describe('api base URL configuration', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true, data: {} }),
-    });
+    }) as unknown as typeof fetch;
 
-    const { api } = await import('./workouts.js');
+    const { api } = await import('./workouts');
     await api.getStats();
 
     expect(globalThis.fetch).toHaveBeenCalledWith('/api/workouts/stats', expect.anything());
@@ -26,9 +26,9 @@ describe('api base URL configuration', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true, data: {} }),
-    });
+    }) as unknown as typeof fetch;
 
-    const { api } = await import('./workouts.js');
+    const { api } = await import('./workouts');
     await api.getStats();
 
     expect(globalThis.fetch).toHaveBeenCalledWith(

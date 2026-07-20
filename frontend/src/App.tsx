@@ -1,8 +1,8 @@
 import { Routes, Route, NavLink } from 'react-router-dom';
-import Dashboard from './pages/Dashboard.jsx';
-import History from './pages/History.jsx';
-import LogWorkout from './pages/LogWorkout.jsx';
-import EditWorkout from './pages/EditWorkout.jsx';
+import Dashboard from './pages/Dashboard';
+import History from './pages/History';
+import LogWorkout from './pages/LogWorkout';
+import EditWorkout from './pages/EditWorkout';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: '⚡' },

@@ -1,9 +1,9 @@
 import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import WorkoutForm from './WorkoutForm.jsx';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import WorkoutForm from './WorkoutForm';
 
-async function fillRequiredFields(user) {
+async function fillRequiredFields(user: UserEvent) {
   await user.type(screen.getByPlaceholderText('e.g. Morning Run, Upper Body'), 'Leg Day');
   await user.type(screen.getByPlaceholderText('45'), '45');
 }

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api/workouts.js';
+import { api } from '../api/workouts';
+import type { Stats } from '../types';
 
-const CATEGORY_EMOJI = {
+const CATEGORY_EMOJI: Record<string, string> = {
   strength: '🏋️',
   cardio: '🏃',
   flexibility: '🧘',
@@ -11,7 +12,7 @@ const CATEGORY_EMOJI = {
 };
 
 export default function Dashboard() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,12 +20,13 @@ export default function Dashboard() {
     api
       .getStats()
       .then((res) => setStats(res.data))
-      .catch((e) => setError(e.message))
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="loading">Loading stats...</div>;
   if (error) return <div className="error-msg">{error}</div>;
+  if (!stats) return null;
 
   const hours = Math.floor((stats.totalMinutes || 0) / 60);
   const mins = (stats.totalMinutes || 0) % 60;

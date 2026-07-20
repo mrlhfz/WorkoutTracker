@@ -1,14 +1,16 @@
 import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
-export default [
+export default tseslint.config(
   { ignores: ['dist/**'] },
   js.configs.recommended,
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['**/*.{ts,tsx}'],
+    extends: [...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -32,10 +34,10 @@ export default [
     },
   },
   {
-    files: ['**/*.test.{js,jsx}', 'src/test/**'],
+    files: ['**/*.test.{ts,tsx}', 'src/test/**'],
     languageOptions: {
       globals: globals.vitest,
     },
   },
   eslintConfigPrettier,
-];
+);
