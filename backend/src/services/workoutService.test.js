@@ -43,8 +43,18 @@ test('getById() returns null for a nonexistent workout', () => {
 });
 
 test('getAll() falls back to sorting by date when an unknown sort column is requested', () => {
-  workoutService.create({ title: 'A', category: 'strength', date: '2026-01-01', duration_minutes: 10 });
-  workoutService.create({ title: 'B', category: 'strength', date: '2026-01-02', duration_minutes: 20 });
+  workoutService.create({
+    title: 'A',
+    category: 'strength',
+    date: '2026-01-01',
+    duration_minutes: 10,
+  });
+  workoutService.create({
+    title: 'B',
+    category: 'strength',
+    date: '2026-01-02',
+    duration_minutes: 20,
+  });
 
   const results = workoutService.getAll({ sort: 'id; DROP TABLE workouts;--' });
 
@@ -53,8 +63,18 @@ test('getAll() falls back to sorting by date when an unknown sort column is requ
 });
 
 test('getAll() filters by search and category', () => {
-  workoutService.create({ title: 'Leg Day', category: 'strength', date: '2026-01-01', duration_minutes: 45 });
-  workoutService.create({ title: 'Morning Run', category: 'cardio', date: '2026-01-02', duration_minutes: 30 });
+  workoutService.create({
+    title: 'Leg Day',
+    category: 'strength',
+    date: '2026-01-01',
+    duration_minutes: 45,
+  });
+  workoutService.create({
+    title: 'Morning Run',
+    category: 'cardio',
+    date: '2026-01-02',
+    duration_minutes: 30,
+  });
 
   const bySearch = workoutService.getAll({ search: 'Run' });
   assert.equal(bySearch.length, 1);
@@ -114,8 +134,18 @@ test('delete() removes a workout and its exercises', () => {
 });
 
 test('getStats() aggregates totals and recent workouts', () => {
-  workoutService.create({ title: 'A', category: 'cardio', date: '2026-01-01', duration_minutes: 30 });
-  workoutService.create({ title: 'B', category: 'cardio', date: '2026-01-02', duration_minutes: 20 });
+  workoutService.create({
+    title: 'A',
+    category: 'cardio',
+    date: '2026-01-01',
+    duration_minutes: 30,
+  });
+  workoutService.create({
+    title: 'B',
+    category: 'cardio',
+    date: '2026-01-02',
+    duration_minutes: 20,
+  });
 
   const stats = workoutService.getStats();
 

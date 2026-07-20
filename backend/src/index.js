@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { initDb } = require('./db/database');
 const createApp = require('./app');
 

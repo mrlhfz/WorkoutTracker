@@ -161,7 +161,17 @@ Can be deployed using:
 
 Both platforms support monorepos — set the project root/subdirectory to `frontend/` or `backend/` respectively in your deployment settings.
 
-> **Known limitation:** the frontend currently calls the API via a hardcoded relative path (`frontend/src/api/workouts.js`), which only works when both are served from the same origin (e.g. local dev via the Vite proxy). Deploying the frontend and backend to two different hosts will not work until the API base URL is made environment-configurable — this is a planned fix, not yet implemented.
+Frontend and backend can be deployed to two different hosts (e.g. frontend on GitHub Pages,
+backend on Render) — each side reads its cross-origin config from environment variables rather
+than a hardcoded value:
+
+- **Frontend**: set `VITE_API_URL` to the deployed backend's full URL including the `/api`
+  suffix (e.g. `https://your-backend-host.example.com/api`) before running `npm run build`. Left
+  unset, it falls back to the relative `/api` path used by the local Vite dev proxy. See
+  `frontend/.env.example`.
+- **Backend**: set `ALLOWED_ORIGINS` to a comma-separated list of allowed frontend origins (e.g.
+  `https://mrlhfz.github.io,https://your-new-frontend.example.com`). Left unset, it falls back to
+  the built-in defaults. See `backend/.env.example`.
 
 ## License
 

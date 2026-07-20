@@ -2,14 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const workoutRoutes = require('./routes/workouts');
 
+const DEFAULT_ORIGINS = ['https://mrlhfz.github.io', 'http://localhost:5173'];
+
 function createApp() {
   const app = express();
 
-  app.use(
-    cors({
-      origin: ['https://mrlhfz.github.io', 'http://localhost:5173'],
-    }),
-  );
+  const origins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
+    : DEFAULT_ORIGINS;
+
+  app.use(cors({ origin: origins }));
   app.use(express.json());
 
   app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

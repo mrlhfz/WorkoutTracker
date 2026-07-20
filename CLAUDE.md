@@ -9,8 +9,8 @@ exercises). It's a monorepo consolidating two previously separate repos
 (`workout-tracker-frontend`, `workout-tracker-backend`) — `backend/` and `frontend/` are
 independent Node projects with their own `package.json`, run and developed separately.
 
-Both packages have ESLint + Prettier and a test suite (see Commands below). There is still no
-CI configured in this repo.
+Both packages have ESLint + Prettier and a test suite (see Commands below), and GitHub Actions
+runs lint + test (+ build for the frontend) on every push/PR to `main` (`.github/workflows/ci.yml`).
 
 ## Commands
 
@@ -97,17 +97,19 @@ endpoint — add new endpoints there rather than calling `fetch` directly from c
 `App.jsx` owns the route table and sidebar nav in one place (`NAV` array + `<Routes>` block) —
 adding a page means updating both.
 
-**Known limitation:** `api/workouts.js` hardcodes `const BASE = '/api'` (relative path). This
-only works when frontend and backend share an origin — true in dev via the Vite proxy
-(`vite.config.js`), false if they're ever deployed to two different hosts (e.g. GitHub Pages +
-Render, as the README's deployment section describes). Fixing this means switching to an
-`import.meta.env.VITE_API_URL`-driven base with a `/api` fallback; not yet done.
+`api/workouts.js`'s request base is `import.meta.env.VITE_API_URL`, falling back to the relative
+`/api` path used by the local Vite proxy (`vite.config.js`) when unset — see `frontend/.env.example`.
+This is what makes deploying frontend and backend to two different hosts (e.g. GitHub Pages +
+Render) actually work; set `VITE_API_URL` to the deployed backend's full URL (including `/api`)
+before running `npm run build` for that kind of deploy.
 
 ### CORS
 
-`backend/src/index.js` hardcodes the allowed origins array (`https://mrlhfz.github.io`,
-`http://localhost:5173`). Adding a new deployed frontend origin means editing this array
-directly — it isn't environment-driven yet.
+`backend/src/app.js`'s `createApp()` reads the allowed origins from the comma-separated
+`ALLOWED_ORIGINS` env var, falling back to `DEFAULT_ORIGINS` (`https://mrlhfz.github.io`,
+`http://localhost:5173`) when unset — see `backend/.env.example`. `index.js` loads `.env` via
+`dotenv` before anything else; `app.js` itself doesn't depend on dotenv (kept env-loading in the
+entrypoint so `createApp()` behaves the same way under tests, which set `process.env` directly).
 
 ## Project docs
 
