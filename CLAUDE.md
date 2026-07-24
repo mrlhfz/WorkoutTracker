@@ -58,6 +58,53 @@ Both packages' `typescript` is pinned to `6.0.3` rather than latest, and `typesc
 recommended rules are scoped to `**/*.{ts,tsx}` via `files` + `extends` in each `eslint.config.js`
 (applying them repo-wide flags `eslint.config.js`'s own imports). See "TypeScript setup" below.
 
+## Commit conventions
+
+Commit messages follow `{type}[scope]: {description}`, e.g. `feat[backend]: add stats endpoint`
+or `fix[frontend]: correct sort dropdown default`. This replaces the ad-hoc "Phase N: ..."
+style used through the TypeScript migration — no need to renumber or rewrite past commits.
+
+**Types:** `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `ci`.
+
+**Scopes** (pick the one most specific to what changed; omit only for a change that's
+genuinely repo-wide, e.g. a root README rewrite):
+
+- `backend` — anything under `backend/` not narrow enough for `db`/`api`
+- `frontend` — anything under `frontend/` not narrow enough for `api`
+- `db` — schema (`db/database.ts`'s `initDb()`), query/SQL changes in `services/`
+- `api` — request/response shape changes to backend routes or `frontend/src/api/workouts.ts`
+- `ci` — `.github/workflows/`, `.github/dependabot.yml`
+- `docs` — `CLAUDE.md`, `README.md`, `Brainstorm.md`, `docs/`
+- `repo` — cross-cutting changes that touch both packages or neither (`.gitignore`,
+  root config, monorepo restructuring)
+
+Description: imperative mood, lowercase, no trailing period. Dependabot's own auto-generated
+commits (`Bump X from Y to Z in /backend`) are left as-is — this convention applies to
+manually-authored commits going forward, not retroactively.
+
+No commit-msg hook or CI check enforces this — it's a documented convention, not a gate.
+
+## AI-drafted messages (`temp/`)
+
+Claude drafts commit messages, code-review output, and PR-adjacent notes into a gitignored
+`temp/` folder at the repo root (e.g. `temp/commit-message.md`, `temp/code-review.md`), or
+alternatively writes an unsaved draft directly into `.git/COMMIT_EDITMSG` so `git commit` opens
+pre-filled. Use `temp/` for anything that should persist or isn't tied to an imminent commit
+(code-review output, PR-style notes); use `.git/COMMIT_EDITMSG` when you want to run
+`git commit` immediately after and have the message ready to go. Either way, Claude never runs
+`git commit` or `git push` on its own.
+
+## SPEC docs (`docs/specs/`)
+
+New or behaviorally-changed source files should get a short SPEC doc under `docs/specs/`,
+mirroring the file's path under `backend/src/` or `frontend/src/` (e.g.
+`backend/src/services/workoutService.ts` → `docs/specs/backend/services/workoutService.md`).
+Use `docs/specs/_template.md` — four sections: Purpose, Exports/Props, Behavior, Dependencies.
+Keep it short; this is a lighter-weight convention than a full design-doc process. All
+implementation source files (excluding tests, `index.css`, and `test/setup.ts`) got a first-pass
+SPEC as of this convention's introduction — write or update one whenever you touch a file
+substantially going forward.
+
 ## Architecture
 
 ### Backend request flow

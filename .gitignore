@@ -149,3 +149,6 @@ vite.config.ts.timestamp-*
 
 # Personal Claude Code settings
 .claude/settings.local.json
+
+# AI-drafted commit/PR messages and scratch output (not committed)
+temp/
